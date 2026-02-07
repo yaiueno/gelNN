@@ -11,13 +11,13 @@ import time
 import logging
 from typing import Tuple, Optional
 
-from interfaces import IDataSource
-import config
+from src.core.interfaces import IDataSource
+from src.utils import config
 
 # Analog Discovery 3 SDK のインポート
 try:
     from ctypes import *
-    from dwfconstants import *
+    from src.hardware.dwfconstants import *
     import sys
     
     if sys.platform.startswith("win"):

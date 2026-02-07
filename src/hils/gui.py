@@ -12,7 +12,7 @@ from tkinter import ttk
 import threading
 import logging
 from typing import Optional
-import config
+from src.utils import config
 
 # ログ設定
 logging.basicConfig(

@@ -21,9 +21,9 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.decomposition import PCA
 from sklearn.metrics import silhouette_score
 
-import config
-from factory import DataSourceFactory
-from model_classifier import TouchClassifier
+from src.utils import config
+from src.core.factory import DataSourceFactory
+from src.core.models.classifier import TouchClassifier
 
 # ログ設定
 logging.basicConfig(

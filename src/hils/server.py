@@ -12,7 +12,7 @@ import numpy as np
 import logging
 from datetime import datetime
 from typing import Set, Dict, Optional
-import config
+from src.utils import config
 
 # ログ設定
 logging.basicConfig(

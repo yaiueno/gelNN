@@ -5,10 +5,7 @@ config.pyの設定に基づいて、適切なデータソース（HILS/実機）
 """
 
 import logging
-from interfaces import IDataSource
-from simulator import HILSSimulatorSource
-from hardware import RealHardwareSource
-import config
+from .interfaces import IDataSource
 
 logger = logging.getLogger(__name__)
 
@@ -32,16 +29,20 @@ class DataSourceFactory:
         Returns:
             IDataSource: HILSシミュレータまたは実機ドライバ
         """
+        from src.utils import config
+        
         if config.USE_REAL_HARDWARE:
+            from src.hardware.hardware import RealHardwareSource
             logger.info("実機ハードウェアモードで起動します")
             return RealHardwareSource()
         else:
             # HILSモード - サーバー or ローカル
             if getattr(config, 'USE_HILS_SERVER', False):
-                from hils_client import HILSClientSource
+                from src.hils.client import HILSClientSource
                 logger.info("HILSクライアントモード（サーバー接続）で起動します")
                 return HILSClientSource()
             else:
+                from src.hils.simulator import HILSSimulatorSource
                 logger.info("HILSシミュレータモード（ローカル計算）で起動します")
                 return HILSSimulatorSource()
     
@@ -53,6 +54,8 @@ class DataSourceFactory:
         Returns:
             str: "Real Hardware" または "HILS Simulator" または "HILS Client"
         """
+        from src.utils import config
+        
         if config.USE_REAL_HARDWARE:
             return "Real Hardware"
         elif getattr(config, 'USE_HILS_SERVER', False):

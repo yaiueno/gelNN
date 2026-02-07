@@ -19,9 +19,9 @@ import logging
 from sklearn.neural_network import MLPRegressor
 from sklearn.preprocessing import StandardScaler
 
-from factory import DataSourceFactory
-from interfaces import IDataSource, MeasurementResult
-import config
+from src.core.factory import DataSourceFactory
+from src.core.interfaces import IDataSource, MeasurementResult
+from src.utils import config
 
 # ログ設定
 logging.basicConfig(

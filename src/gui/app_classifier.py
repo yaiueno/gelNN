@@ -11,10 +11,10 @@ import logging
 from typing import Optional, Tuple
 import colorsys
 
-from factory import DataSourceFactory
-from interfaces import IDataSource
-from model_classifier import TouchClassifier
-import config
+from src.core.factory import DataSourceFactory
+from src.core.interfaces import IDataSource
+from src.core.models.classifier import TouchClassifier
+from src.utils import config
 
 # ログ設定
 logging.basicConfig(

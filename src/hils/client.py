@@ -14,8 +14,8 @@ import uuid
 from typing import Optional
 from queue import Queue
 
-from interfaces import IDataSource
-import config
+from src.core.interfaces import IDataSource
+from src.utils import config
 
 logger = logging.getLogger(__name__)
 

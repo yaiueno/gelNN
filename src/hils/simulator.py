@@ -10,8 +10,8 @@ import time
 from typing import Tuple, Optional
 import logging
 
-from interfaces import IDataSource
-import config
+from src.core.interfaces import IDataSource
+from src.utils import config
 
 logger = logging.getLogger(__name__)
 

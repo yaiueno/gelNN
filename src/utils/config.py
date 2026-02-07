@@ -116,6 +116,9 @@ RANDOM_STATE = 42
 # ログレベル: DEBUG, INFO, WARNING, ERROR, CRITICAL
 LOG_LEVEL = "INFO"
 
+# ログディレクトリ
+LOG_DIR = "logs"
+
 # ========================================
 # HILSサーバー設定
 # ========================================
