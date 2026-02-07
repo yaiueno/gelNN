@@ -1,0 +1,6 @@
+customtkinter
+websockets
+numpy
+scikit-learn
+pyserial
+matplotlib
