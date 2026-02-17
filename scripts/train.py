@@ -5,10 +5,16 @@
 学習したモデルは models/ ディレクトリに保存されます。
 """
 
+import os
+import sys
+
+# プロジェクトルートをPythonパスに追加
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, PROJECT_ROOT)
+
 import numpy as np
 import pickle
 import json
-import os
 import argparse
 import logging
 from datetime import datetime
@@ -16,9 +22,9 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 
-from factory import DataSourceFactory
-from interfaces import MeasurementResult
-import config
+from src.core.factory import DataSourceFactory
+from src.core.interfaces import MeasurementResult
+from src.utils import config
 
 # ログ設定
 logging.basicConfig(

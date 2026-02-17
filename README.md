@@ -31,6 +31,7 @@
 | **05_train_classifier_model.bat** | モデル学習（バッチ） | 5～15分 | HILS/実機 |
 | **06_run_automated_test.bat** | 自動テスト | 5～10分 | HILS/実機 |
 | **07_classifier_app_only.bat** | 分類器単独起動 | - | HILS |
+| **08_single_terminal_detect.bat** | 単一端子押圧検出（学習+判定） | 5～10分 | 実機(AD3のみ)/HILS |
 
 📘 **詳細な使い方**: [USAGE_GUIDE.md](USAGE_GUIDE.md) を参照してください。
 
@@ -46,6 +47,7 @@
 - **機械学習**: MLPRegressorと分類器で位置推定
 - **周波数最適化**: 自動周波数分析ツール搭載
 - **リアルタイム検証**: 確率ヒートマップとメトリクス表示
+- **単一端子押圧検出**: AD3のみ（Arduino不要）で押圧有無をNN判定
 
 ---
 
@@ -85,6 +87,30 @@ HILS GUI Controller → WebSocket → HILS Server ← WebSocket ← Classifier A
     (タッチ操作)                  (シミュレーション)              (結果表示)
 ```
 
+### 単一端子モード（AD3のみ・Arduino不要）
+
+```
+┌──────────────┐
+│  PC (Python) │
+│  GUI App     │
+└──────┬───────┘
+       │ USB
+┌──────▼───────┐
+│   AD3        │
+│ (Impedance)  │
+│  W1+/1+      │
+│  → 1-/GND    │
+└──────┬───────┘
+       │
+┌──────▼───────┐
+│  Ion Gel     │
+│  (1 pair)    │
+└──────────────┘
+```
+
+MUX切り替え不要のため Arduino は使いません。
+GUIで「学習モード」と「判定モード」を切り替えて使用します。
+
 ---
 
 ## 📁 プロジェクト構造
@@ -101,6 +127,7 @@ gelNN/
 │
 ├── run_app.py                          # アプリ起動エントリーポイント
 ├── run_classifier.py                   # 分類器起動エントリーポイント
+├── run_single_terminal.py              # 単一端子押圧検出アプリ起動
 ├── run_hils_server.py                  # HILSサーバー起動
 ├── run_hils_gui.py                     # HILS GUI起動
 │
@@ -109,9 +136,12 @@ gelNN/
 │   │   ├── interfaces.py               # IDataSource, MeasurementResult
 │   │   ├── factory.py                  # DataSourceFactory
 │   │   └── models/
-│   │       └── classifier.py           # TouchClassifier
+│   │       ├── classifier.py           # TouchClassifier (9点分類)
+│   │       ├── press_classifier.py     # PressClassifierModel (押圧二値分類NN)
+│   │       └── single_terminal.py      # SingleTerminalDetector (しきい値検出)
 │   ├── hardware/                       # ハードウェア層
-│   │   ├── hardware.py                 # RealHardwareSource
+│   │   ├── hardware.py                 # RealHardwareSource (AD3+Arduino)
+│   │   ├── ad3_only.py                 # AD3OnlySource (AD3のみ・Arduino不要)
 │   │   └── dwfconstants.py             # AD3定数
 │   ├── hils/                           # HILSシステム
 │   │   ├── simulator.py                # HILSSimulatorSource
@@ -120,7 +150,8 @@ gelNN/
 │   │   └── gui.py                      # HILS操作GUI
 │   ├── gui/                            # GUIアプリケーション
 │   │   ├── app.py                      # データ収集・学習・推論GUI
-│   │   └── app_classifier.py           # 分類器GUI
+│   │   ├── app_classifier.py           # 分類器GUI
+│   │   └── app_single_terminal.py      # 単一端子押圧検出GUI（学習+判定）
 │   └── utils/                          # ユーティリティ
 │       ├── config.py                   # 設定ファイル
 │       └── frequency_analyzer.py       # 周波数分析ツール
@@ -256,6 +287,7 @@ ARDUINO_PORT = "COM3"  # 環境に応じて変更
 - **05**: モデル学習（バッチ処理）
 - **06**: 自動テスト
 - **07**: 分類器単独起動
+- **08**: 単一端子押圧検出（AD3のみ・学習＋判定）
 
 ---
 
@@ -296,6 +328,50 @@ python --version  # Python 3.8以上を確認
 
 ---
 
+## 🔬 08: 単一端子押圧検出
+
+**Arduino不要** — AD3だけで「押されているか否か」を判定します。
+
+### 使い方
+
+```cmd
+08_single_terminal_detect.bat
+```
+
+### 学習モード
+
+1. アプリ起動後「**学習モード**」タブを選択
+2. ゲルに触れずに **Collect RELEASED** → 30サンプル自動収集
+3. ゲルを押しながら **Collect PRESSED** → 30サンプル自動収集
+4. **Train Model** をクリック → MLP二値分類器を学習
+   - 散布図に決定境界が表示される
+   - モデルは `models/press_classifier_model.pkl` に自動保存
+
+### 判定モード
+
+1. 「**判定モード**」タブに切り替え
+2. **Start** → リアルタイムで PRESSED/RELEASED を表示
+   - インピーダンス波形グラフ
+   - NN出力の信頼度 (Confidence)
+
+### 構成クラス
+
+| クラス | ファイル | 役割 |
+|---|---|---|
+| `AD3OnlySource` | `src/hardware/ad3_only.py` | AD3単体ドライバ（IDataSource実装） |
+| `PressClassifierModel` | `src/core/models/press_classifier.py` | MLP二値分類NN（学習/保存/推論） |
+| `SingleTerminalApp` | `src/gui/app_single_terminal.py` | 学習+判定のタブ型GUI |
+
+### HILS で試す場合
+
+`src/utils/config.py` を変更:
+```python
+USE_REAL_HARDWARE = False
+USE_HILS_SERVER = False   # ローカルシミュレータ
+```
+
+---
+
 ## 🎯 今後の拡張
 
 - [ ] より高度な機械学習モデル（CNN、RNN）
@@ -315,4 +391,4 @@ Ion Gel Touch Estimation Project Team
 
 ---
 
-**最終更新**: 2026年2月8日
+**最終更新**: 2026年2月9日

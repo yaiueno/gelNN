@@ -5,22 +5,33 @@
 詳細なログを出力してシステムの動作を検証します。
 """
 
+import os
+import sys
+
+# プロジェクトルートをPythonパスに追加
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, PROJECT_ROOT)
+
 import numpy as np
 import logging
 from datetime import datetime
 from sklearn.neural_network import MLPRegressor
 from sklearn.preprocessing import StandardScaler
 
-from factory import DataSourceFactory
-from interfaces import MeasurementResult
-import config
+from src.core.factory import DataSourceFactory
+from src.core.interfaces import MeasurementResult
+from src.utils import config
 
 # ログ設定
+LOG_DIR = os.path.join(PROJECT_ROOT, "logs")
+os.makedirs(LOG_DIR, exist_ok=True)
+log_path = os.path.join(LOG_DIR, f"test_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt")
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler(f'test_log_{datetime.now().strftime("%Y%m%d_%H%M%S")}.txt'),
+        logging.FileHandler(log_path),
         logging.StreamHandler()
     ]
 )
